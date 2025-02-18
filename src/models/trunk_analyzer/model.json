@@ -1,0 +1,59 @@
+{
+  "modelTopology": {
+    "class_name": "Sequential",
+    "config": {
+      "name": "trunk_analyzer",
+      "layers": [
+        {
+          "class_name": "Conv2D",
+          "config": {
+            "filters": 32,
+            "kernel_size": [3, 3],
+            "activation": "relu",
+            "input_shape": [640, 640, 3]
+          }
+        },
+        {
+          "class_name": "MaxPooling2D",
+          "config": {
+            "pool_size": [2, 2]
+          }
+        },
+        {
+          "class_name": "Conv2D",
+          "config": {
+            "filters": 64,
+            "kernel_size": [3, 3],
+            "activation": "relu"
+          }
+        },
+        {
+          "class_name": "MaxPooling2D",
+          "config": {
+            "pool_size": [2, 2]
+          }
+        },
+        {
+          "class_name": "Flatten",
+          "config": {}
+        },
+        {
+          "class_name": "Dense",
+          "config": {
+            "units": 8,
+            "activation": "linear"
+          }
+        }
+      ]
+    }
+  },
+  "weightsManifest": [
+    {
+      "paths": ["weights.bin"],
+      "weights": []
+    }
+  ],
+  "format": "layers-model",
+  "generatedBy": "TensorFlow.js v3.18.0",
+  "convertedBy": null
+} 

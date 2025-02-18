@@ -1,0 +1,86 @@
+{
+  "development": {
+    "dialect": "sqlite",
+    "storage": "./database.sqlite",
+    "logging": false,
+    "define": {
+      "timestamps": true,
+      "underscored": true,
+      "createdAt": "created_at",
+      "updatedAt": "updated_at",
+      "defaultScope": {
+        "attributes": {
+          "exclude": ["deleted_at"]
+        }
+      }
+    },
+    "migrationStorageTableName": "sequelize_meta",
+    "seederStorageTableName": "sequelize_data",
+    "sync": {
+      "force": false,
+      "alter": false
+    },
+    "pool": {
+      "max": 5,
+      "min": 0,
+      "acquire": 30000,
+      "idle": 10000
+    }
+  },
+  "test": {
+    "dialect": "sqlite",
+    "storage": ":memory:",
+    "logging": false,
+    "define": {
+      "timestamps": true,
+      "underscored": true,
+      "createdAt": "created_at",
+      "updatedAt": "updated_at",
+      "defaultScope": {
+        "attributes": {
+          "exclude": ["deleted_at"]
+        }
+      }
+    },
+    "migrationStorageTableName": "sequelize_meta",
+    "seederStorageTableName": "sequelize_data",
+    "sync": {
+      "force": false,
+      "alter": false
+    },
+    "pool": {
+      "max": 5,
+      "min": 0,
+      "acquire": 30000,
+      "idle": 10000
+    }
+  },
+  "production": {
+    "dialect": "sqlite",
+    "storage": "./database.sqlite",
+    "logging": false,
+    "define": {
+      "timestamps": true,
+      "underscored": true,
+      "createdAt": "created_at",
+      "updatedAt": "updated_at",
+      "defaultScope": {
+        "attributes": {
+          "exclude": ["deleted_at"]
+        }
+      }
+    },
+    "migrationStorageTableName": "sequelize_meta",
+    "seederStorageTableName": "sequelize_data",
+    "sync": {
+      "force": false,
+      "alter": false
+    },
+    "pool": {
+      "max": 5,
+      "min": 0,
+      "acquire": 30000,
+      "idle": 10000
+    }
+  }
+}
