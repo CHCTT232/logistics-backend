@@ -2,10 +2,11 @@
   "name": "logistics-backend",
   "version": "1.0.0",
   "description": "城乡物流配送系统后端",
-  "main": "src/server.js",
+  "main": "src/app.js",
   "scripts": {
-    "start": "nodemon src/server.js",
-    "dev": "nodemon src/server.js",
+    "start": "node src/app.js",
+    "build": "npm install",
+    "dev": "nodemon src/app.js",
     "init-db": "node src/scripts/initDb.js",
     "test": "jest"
   },
@@ -24,5 +25,8 @@
   "devDependencies": {
     "jest": "^29.5.0",
     "nodemon": "^2.0.22"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
