@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node ./src/app.js",
     "build": "npm install",
+    "postinstall": "npm install",
     "dev": "nodemon ./src/app.js"
   },
   "dependencies": {
@@ -25,6 +26,6 @@
     "nodemon": "^2.0.22"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": "16.x"
   }
 }
