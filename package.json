@@ -5,7 +5,8 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
-    "vercel-build": "npm install",
+    "build": "npm install",
+    "vercel-build": "echo 'Ready to deploy'",
     "dev": "nodemon src/app.js"
   },
   "dependencies": {
