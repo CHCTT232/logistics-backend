@@ -2,9 +2,10 @@ services:
   - type: web
     name: logistics-api
     env: node
-    plan: free
+    plan: starter
     buildCommand: npm install
     startCommand: node src/app.js
+    healthCheckPath: /api/test
     envVars:
       - key: NODE_ENV
         value: production
@@ -12,4 +13,10 @@ services:
         value: 3001
       - key: JWT_SECRET
         generateValue: true
-    autoDeploy: true 
+      - key: CORS_ORIGIN
+        value: https://sanchuangsai.chenhao.xin
+    autoDeploy: true
+    disk:
+      name: sqlite-data
+      mountPath: /opt/render/project/src/database
+      sizeGB: 1 
