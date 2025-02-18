@@ -5,7 +5,8 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
-    "build": "npm install",
+    "build": "echo 'Building...'",
+    "vercel-build": "npm install",
     "dev": "nodemon src/app.js",
     "init-db": "node src/scripts/initDb.js",
     "test": "jest"
