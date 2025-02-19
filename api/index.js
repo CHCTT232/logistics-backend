@@ -35,16 +35,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
-// 导入路由（使用绝对路径）
-const authRoutes = require(path.join(__dirname, '../src/routes/authRoutes'));
-const adminRoutes = require(path.join(__dirname, '../src/routes/adminRoutes'));
-const userRoutes = require(path.join(__dirname, '../src/routes/userRoutes'));
-const stationRoutes = require(path.join(__dirname, '../src/routes/stationRoutes'));
-const driverRoutes = require(path.join(__dirname, '../src/routes/driverRoutes'));
-const stationAdminRoutes = require(path.join(__dirname, '../src/routes/stationAdminRoutes'));
-const customerRoutes = require(path.join(__dirname, '../src/routes/customerRoutes'));
-const trunkRoutes = require(path.join(__dirname, '../src/routes/trunkRoutes'));
-
 // 测试路由
 app.get('/api/test', (req, res) => {
   res.json({ 
@@ -57,47 +47,16 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// 路由
-app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/user', userRoutes);
-app.use('/api/driver', driverRoutes);
-app.use('/api/station', stationRoutes);
-app.use('/api/station-admin', stationAdminRoutes);
-app.use('/api/customer', customerRoutes);
-app.use('/api/trunk', trunkRoutes);
-
-// 404 处理
-app.use((req, res, next) => {
-  res.status(404).json({ error: '请求的资源不存在' });
-});
-
-// 错误处理中间件
-app.use((err, req, res, next) => {
-  console.error('错误:', err);
-  res.status(err.status || 500).json({
-    code: err.status || 500,
-    message: err.message || '服务器内部错误',
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
-  });
-});
-
 // 数据库配置
 const { Sequelize } = require('sequelize');
 const dbConfig = {
   dialect: 'sqlite',
   storage: ':memory:',
-  logging: false, // 禁用日志记录以减少噪音
+  logging: false,
   define: {
     timestamps: true,
     underscored: true,
     underscoredAll: true
-  },
-  pool: {
-    max: 1,
-    min: 0,
-    acquire: 30000,
-    idle: 10000
   }
 };
 
@@ -130,7 +89,7 @@ async function initializeDatabase() {
       
       // 同步数据库结构
       console.log('同步数据库结构...');
-      await sequelize.sync({ force: true }); // 强制重建表
+      await sequelize.sync({ force: true });
       console.log('数据库同步完成');
       
       // 初始化基础数据
@@ -139,8 +98,31 @@ async function initializeDatabase() {
       console.log('基础数据初始化完成');
       
       isDbInitialized = true;
+      
+      // 初始化路由
+      console.log('初始化路由...');
+      const authRoutes = require('../src/routes/authRoutes');
+      const adminRoutes = require('../src/routes/adminRoutes');
+      const userRoutes = require('../src/routes/userRoutes');
+      const stationRoutes = require('../src/routes/stationRoutes');
+      const driverRoutes = require('../src/routes/driverRoutes');
+      const stationAdminRoutes = require('../src/routes/stationAdminRoutes');
+      const customerRoutes = require('../src/routes/customerRoutes');
+      const trunkRoutes = require('../src/routes/trunkRoutes');
+
+      // 注册路由
+      app.use('/api/auth', authRoutes);
+      app.use('/api/admin', adminRoutes);
+      app.use('/api/user', userRoutes);
+      app.use('/api/driver', driverRoutes);
+      app.use('/api/station', stationRoutes);
+      app.use('/api/station-admin', stationAdminRoutes);
+      app.use('/api/customer', customerRoutes);
+      app.use('/api/trunk', trunkRoutes);
+      
+      console.log('路由初始化完成');
     } catch (error) {
-      console.error('数据库初始化失败:', error);
+      console.error('初始化失败:', error);
       isDbInitialized = false;
       dbInitializationPromise = null;
       throw error;
@@ -150,9 +132,31 @@ async function initializeDatabase() {
   return dbInitializationPromise;
 }
 
+// 404 处理
+app.use((req, res, next) => {
+  res.status(404).json({ error: '请求的资源不存在' });
+});
+
+// 错误处理中间件
+app.use((err, req, res, next) => {
+  console.error('错误:', err);
+  res.status(err.status || 500).json({
+    code: err.status || 500,
+    message: err.message || '服务器内部错误',
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
+
 // Serverless处理函数
 async function handler(req, res) {
   try {
+    console.log('收到请求:', {
+      method: req.method,
+      path: req.path,
+      query: req.query,
+      headers: req.headers
+    });
+
     // 确保数据库已初始化
     await initializeDatabase();
     
@@ -162,6 +166,7 @@ async function handler(req, res) {
       
       // 监听请求完成
       res.on('finish', () => {
+        console.log('请求处理完成');
         resolve();
       });
       
