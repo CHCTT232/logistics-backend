@@ -53,10 +53,13 @@ const dbConfig = {
   dialect: 'sqlite',
   storage: ':memory:',
   logging: false,
+  dialectModule: require('better-sqlite3'),
   define: {
     timestamps: true,
     underscored: true,
-    underscoredAll: true
+    underscoredAll: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   }
 };
 
