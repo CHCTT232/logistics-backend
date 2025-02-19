@@ -13,6 +13,7 @@ const stationAdminRoutes = require('../src/routes/stationAdminRoutes');
 const customerRoutes = require('../src/routes/customerRoutes');
 const trunkRoutes = require('../src/routes/trunkRoutes');
 
+// 创建Express应用
 const app = express();
 
 // CORS 配置
@@ -68,31 +69,40 @@ app.use((err, req, res, next) => {
   });
 });
 
+// 数据库连接状态
+let isDbInitialized = false;
+
 // 初始化数据库连接
 async function initializeDatabase() {
+  if (isDbInitialized) {
+    return;
+  }
+  
   try {
     await sequelize.authenticate();
     console.log('数据库连接成功');
     await sequelize.sync();
     console.log('数据库同步完成');
+    isDbInitialized = true;
   } catch (error) {
     console.error('数据库初始化失败:', error);
     throw error;
   }
 }
 
-// 导出处理函数
-module.exports = async (req, res) => {
+// 创建处理函数
+const handler = async (req, res) => {
   try {
-    // 确保数据库已初始化
     await initializeDatabase();
-    // 使用 Express 应用处理请求
-    app(req, res);
+    return app(req, res);
   } catch (error) {
     console.error('请求处理失败:', error);
-    res.status(500).json({
+    return res.status(500).json({
       code: 500,
       message: '服务器内部错误'
     });
   }
-}; 
+};
+
+// 导出处理函数
+module.exports = handler; 
