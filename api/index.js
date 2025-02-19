@@ -86,12 +86,18 @@ app.use((err, req, res, next) => {
 const { Sequelize } = require('sequelize');
 const dbConfig = {
   dialect: 'sqlite',
-  storage: ':memory:', // 使用内存数据库
-  logging: console.log,
+  storage: ':memory:',
+  logging: false, // 禁用日志记录以减少噪音
   define: {
     timestamps: true,
     underscored: true,
     underscoredAll: true
+  },
+  pool: {
+    max: 1,
+    min: 0,
+    acquire: 30000,
+    idle: 10000
   }
 };
 
@@ -114,22 +120,23 @@ async function initializeDatabase() {
 
   dbInitializationPromise = (async () => {
     try {
+      console.log('开始初始化数据库...');
       await sequelize.authenticate();
       console.log('数据库连接成功');
       
       // 导入模型
-      const models = require(path.join(__dirname, '../src/models'));
+      console.log('导入数据模型...');
+      const models = require('../src/models');
       
       // 同步数据库结构
-      await sequelize.sync();
+      console.log('同步数据库结构...');
+      await sequelize.sync({ force: true }); // 强制重建表
       console.log('数据库同步完成');
       
       // 初始化基础数据
-      if (process.env.NODE_ENV === 'production') {
-        const initData = require(path.join(__dirname, '../src/seeders/init'));
-        await initData(sequelize);
-        console.log('基础数据初始化完成');
-      }
+      console.log('初始化基础数据...');
+      await require('../src/seeders/init')(sequelize);
+      console.log('基础数据初始化完成');
       
       isDbInitialized = true;
     } catch (error) {
