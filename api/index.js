@@ -1,7 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-const { sequelize } = require('../src/models');
+const path = require('path');
+
+// 配置环境变量
+require('dotenv').config({
+  path: path.resolve(__dirname, '../.env.production')
+});
 
 // 创建Express应用
 const app = express();
@@ -30,19 +35,26 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
-// 导入路由
-const authRoutes = require('../src/routes/authRoutes');
-const adminRoutes = require('../src/routes/adminRoutes');
-const userRoutes = require('../src/routes/userRoutes');
-const stationRoutes = require('../src/routes/stationRoutes');
-const driverRoutes = require('../src/routes/driverRoutes');
-const stationAdminRoutes = require('../src/routes/stationAdminRoutes');
-const customerRoutes = require('../src/routes/customerRoutes');
-const trunkRoutes = require('../src/routes/trunkRoutes');
+// 导入路由（使用绝对路径）
+const authRoutes = require(path.join(__dirname, '../src/routes/authRoutes'));
+const adminRoutes = require(path.join(__dirname, '../src/routes/adminRoutes'));
+const userRoutes = require(path.join(__dirname, '../src/routes/userRoutes'));
+const stationRoutes = require(path.join(__dirname, '../src/routes/stationRoutes'));
+const driverRoutes = require(path.join(__dirname, '../src/routes/driverRoutes'));
+const stationAdminRoutes = require(path.join(__dirname, '../src/routes/stationAdminRoutes'));
+const customerRoutes = require(path.join(__dirname, '../src/routes/customerRoutes'));
+const trunkRoutes = require(path.join(__dirname, '../src/routes/trunkRoutes'));
 
 // 测试路由
 app.get('/api/test', (req, res) => {
-  res.json({ message: '后端服务器正常工作' });
+  res.json({ 
+    message: '后端服务器正常工作',
+    env: process.env.NODE_ENV,
+    config: {
+      database: process.env.DB_TYPE,
+      cors: corsOptions.origin
+    }
+  });
 });
 
 // 路由
@@ -65,9 +77,26 @@ app.use((err, req, res, next) => {
   console.error('错误:', err);
   res.status(err.status || 500).json({
     code: err.status || 500,
-    message: err.message || '服务器内部错误'
+    message: err.message || '服务器内部错误',
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 });
+
+// 数据库配置
+const { Sequelize } = require('sequelize');
+const dbConfig = {
+  dialect: 'sqlite',
+  storage: ':memory:', // 使用内存数据库
+  logging: console.log,
+  define: {
+    timestamps: true,
+    underscored: true,
+    underscoredAll: true
+  }
+};
+
+// 创建Sequelize实例
+const sequelize = new Sequelize(dbConfig);
 
 // 数据库连接状态跟踪
 let isDbInitialized = false;
@@ -75,27 +104,36 @@ let dbInitializationPromise = null;
 
 // 初始化数据库连接
 async function initializeDatabase() {
-  // 如果数据库已经初始化，直接返回
   if (isDbInitialized) {
     return Promise.resolve();
   }
 
-  // 如果正在初始化，返回初始化Promise
   if (dbInitializationPromise) {
     return dbInitializationPromise;
   }
 
-  // 开始新的初始化
   dbInitializationPromise = (async () => {
     try {
       await sequelize.authenticate();
       console.log('数据库连接成功');
+      
+      // 导入模型
+      const models = require(path.join(__dirname, '../src/models'));
+      
+      // 同步数据库结构
       await sequelize.sync();
       console.log('数据库同步完成');
+      
+      // 初始化基础数据
+      if (process.env.NODE_ENV === 'production') {
+        const initData = require(path.join(__dirname, '../src/seeders/init'));
+        await initData(sequelize);
+        console.log('基础数据初始化完成');
+      }
+      
       isDbInitialized = true;
     } catch (error) {
       console.error('数据库初始化失败:', error);
-      // 重置状态，允许重试
       isDbInitialized = false;
       dbInitializationPromise = null;
       throw error;
@@ -106,7 +144,7 @@ async function initializeDatabase() {
 }
 
 // Serverless处理函数
-const handler = async (req, res) => {
+async function handler(req, res) {
   try {
     // 确保数据库已初始化
     await initializeDatabase();
@@ -133,11 +171,12 @@ const handler = async (req, res) => {
       res.status(500).json({
         code: 500,
         message: '服务器内部错误',
-        detail: error.message
+        detail: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   }
-};
+}
 
 // 导出处理函数
 module.exports = handler; 
